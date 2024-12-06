@@ -1,15 +1,28 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
+
+	"api/handlers"
 )
 
 func main() {
+    router := mux.NewRouter()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode("Hello World")
-	})
+    router.HandleFunc("/", handlers.RedirectHandler)
 
-	http.ListenAndServe(":3000", nil)
+    urlRouter := router.PathPrefix("/api/url").Subrouter()
+
+    urlRouter.HandleFunc("/{id}", handlers.InfoHandler).Methods(http.MethodGet)
+    urlRouter.HandleFunc("/", handlers.ListHandler).Methods(http.MethodGet)
+    urlRouter.HandleFunc("/", handlers.CreateHandler).Methods(http.MethodPost)
+	urlRouter.HandleFunc("/", handlers.UpdateHandler).Methods(http.MethodPatch)
+    urlRouter.HandleFunc("/", handlers.DeleteHandler).Methods(http.MethodDelete) 
+
+    fmt.Println("Server is running on port 3000")
+	log.Fatal(http.ListenAndServe(":3000", router))
 }
